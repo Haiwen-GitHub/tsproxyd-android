@@ -7,5 +7,5 @@
 //    }
 //}
 
-rootProject.name = "Tsproxyd"
+rootProject.name = "TsProxyd"
 include ':app'

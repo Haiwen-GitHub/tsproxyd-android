@@ -83,7 +83,6 @@ typedef struct proxyd_ctx_s {
     int dest_port_settings;
     int dest_port_br_ptt;
     int dest_port_location;
-
     int  proxy_ssl;
     int thread_num;
     int multi_mode;
