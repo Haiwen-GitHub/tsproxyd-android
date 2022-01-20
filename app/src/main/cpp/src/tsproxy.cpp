@@ -53,6 +53,8 @@ extern "C" {
 #define DEFAULT_DEST_PORT_CONTACT 8090
 #define DEFAULT_DEST_PORT_SETTING 8092
 #define DEFAULT_DEST_PORT_BR_PTT 8094
+#define DEFAULT_DEST_PORT_LOCATION 8096
+
 
 #define HTTP_KEEPALIVE_TIMEOUT  60000 // ms
 #define HTTP_MAX_URL_LENGTH     256
@@ -79,7 +81,9 @@ typedef struct proxyd_ctx_s {
     int dest_port_video;
     int dest_port_contact;
     int dest_port_settings;
-    int port_dest_br_ptt;
+    int dest_port_br_ptt;
+    int dest_port_location;
+
     int  proxy_ssl;
     int thread_num;
     int multi_mode;
@@ -160,13 +164,14 @@ static void proxy_ctx_init(int argc, char** argv) {
     strcpy(g_proxyd_ctx.proxy_host, "0.0.0.0");
     g_proxyd_ctx.proxy_port = DEFAULT_PROXY_PORT;
     g_proxyd_ctx.dest_port = DEFAULT_DEST_PORT;
-    g_proxyd_ctx.dest_port_im = DEFAULT_DEST_PORT;
-    g_proxyd_ctx.dest_port_file = DEFAULT_DEST_PORT;
-    g_proxyd_ctx.dest_port_audio = DEFAULT_DEST_PORT;
-    g_proxyd_ctx.dest_port_video = DEFAULT_DEST_PORT;
-    g_proxyd_ctx.dest_port_contact = DEFAULT_DEST_PORT;
-    g_proxyd_ctx.dest_port_settings = DEFAULT_DEST_PORT;
-    g_proxyd_ctx.port_dest_br_ptt = DEFAULT_DEST_PORT;
+    g_proxyd_ctx.dest_port_im = DEFAULT_DEST_PORT_IM;
+    g_proxyd_ctx.dest_port_file = DEFAULT_DEST_PORT_FILE;
+    g_proxyd_ctx.dest_port_audio = DEFAULT_DEST_PORT_AUDIO;
+    g_proxyd_ctx.dest_port_video = DEFAULT_DEST_PORT_VIDEO;
+    g_proxyd_ctx.dest_port_contact = DEFAULT_DEST_PORT_CONTACT;
+    g_proxyd_ctx.dest_port_settings = DEFAULT_DEST_PORT_SETTING;
+    g_proxyd_ctx.dest_port_br_ptt = DEFAULT_DEST_PORT_BR_PTT;
+    g_proxyd_ctx.dest_port_location = DEFAULT_DEST_PORT_LOCATION;
     g_proxyd_ctx.proxy_ssl = 0;
     g_proxyd_ctx.thread_num = 1;
     g_proxyd_ctx.accept_loop = NULL;
@@ -402,30 +407,42 @@ static int parse_proxy_port(http_msg_t* req) {
 
         if (strstr(path, "/im") == path) {
             dest_port = g_proxyd_ctx.dest_port_im;
+            break;
         }
 
-        if (strstr(path, "/file") == path) {
-            dest_port = g_proxyd_ctx.dest_port_file;
+        if (strstr(path, "/audio/ptt/broadcast") == path) {
+            dest_port = g_proxyd_ctx.dest_port_br_ptt;
+            break;
         }
 
         if (strstr(path, "/audio") == path) {
             dest_port = g_proxyd_ctx.dest_port_audio;
+            break;
         }
 
         if (strstr(path, "/video") == path) {
             dest_port = g_proxyd_ctx.dest_port_video;
+            break;
+        }
+
+        if (strstr(path, "/file") == path) {
+            dest_port = g_proxyd_ctx.dest_port_file;
+            break;
         }
 
         if (strstr(path, "/contact") == path || strstr(path, "/group") == path) {
             dest_port = g_proxyd_ctx.dest_port_contact;
+            break;
         }
 
         if (strstr(path, "/settings") == path) {
             dest_port = g_proxyd_ctx.dest_port_settings;
+            break;
         }
 
-        if (strstr(path, "/audio/ptt/broadcast") == path) {
-            dest_port = g_proxyd_ctx.port_dest_br_ptt;
+        if (strstr(path, "/location") == path) {
+            dest_port = g_proxyd_ctx.dest_port_location;
+            break;
         }
 
     } while(0);
@@ -787,8 +804,10 @@ static void printf_ctx_args() {
     hlogi("dest_port_contact: %d\n", g_proxyd_ctx.dest_port_contact);
     printf("dest_port_settings: %d\n", g_proxyd_ctx.dest_port_settings);
     hlogi("dest_port_settings: %d\n", g_proxyd_ctx.dest_port_settings);
-    printf("port_dest_br_ptt: %d\n", g_proxyd_ctx.port_dest_br_ptt);
-    hlogi("port_dest_br_ptt: %d\n", g_proxyd_ctx.port_dest_br_ptt);
+    printf("dest_port_br_ptt: %d\n", g_proxyd_ctx.dest_port_br_ptt);
+    hlogi("dest_port_br_ptt: %d\n", g_proxyd_ctx.dest_port_br_ptt);
+    printf("dest_port_location: %d\n", g_proxyd_ctx.dest_port_location);
+    hlogi("dest_port_location: %d\n", g_proxyd_ctx.dest_port_location);
     printf("thread_num: %d\n", g_proxyd_ctx.thread_num);
     hlogi("thread_num: %d\n", g_proxyd_ctx.thread_num);
 }
@@ -902,9 +921,15 @@ static int parse_confile(const char* confile) {
     }
 
     // setting port
-    g_proxyd_ctx.port_dest_br_ptt = ini.Get<int>("port_dest_br_ptt");
-    if (g_proxyd_ctx.port_dest_br_ptt <= 0) {
-        g_proxyd_ctx.port_dest_br_ptt = DEFAULT_DEST_PORT_BR_PTT;
+    g_proxyd_ctx.dest_port_br_ptt = ini.Get<int>("port_dest_br_ptt");
+    if (g_proxyd_ctx.dest_port_br_ptt <= 0) {
+        g_proxyd_ctx.dest_port_br_ptt = DEFAULT_DEST_PORT_BR_PTT;
+    }
+
+    // location port
+    g_proxyd_ctx.dest_port_location = ini.Get<int>("port_dest_location");
+    if (g_proxyd_ctx.dest_port_location <= 0) {
+        g_proxyd_ctx.dest_port_location = DEFAULT_DEST_PORT_LOCATION;
     }
 
     // ssl

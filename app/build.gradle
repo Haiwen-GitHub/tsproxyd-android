@@ -8,7 +8,7 @@ android {
         minSdk 19
         targetSdk 32
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         ndk {
@@ -32,9 +32,9 @@ android {
                     def date = new Date()
                     def formattedDate = date.format('yyyyMMdd')
                     if (variant.buildType.name.equals('release')) {
-                        fileName = "tsproxyed_${variant.mergedFlavor.versionName}_release_${formattedDate}.apk"
+                        fileName = "tsproxyed_${variant.mergedFlavor.versionName}_${formattedDate}.apk"
                     } else if (variant.buildType.name.equals('debug')) {
-                        fileName = "tsproxyed_${variant.mergedFlavor.versionName}_debug_${formattedDate}.apk"
+                        fileName = "tsproxyed_${variant.mergedFlavor.versionName}_${formattedDate}.apk"
                     }
                     outputFileName = fileName
                 }
