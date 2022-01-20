@@ -6,5 +6,5 @@
 //        jcenter() // Warning: this repository is going to shut down soon
 //    }
 //}
-rootProject.name = "TsProxyd"
+rootProject.name = "Tsproxyd"
 include ':app'
