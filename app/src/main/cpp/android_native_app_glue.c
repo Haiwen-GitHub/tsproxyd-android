@@ -225,7 +225,7 @@ static void* android_app_entry(void* param) {
 
     int ret = android_main(android_app);
     LOGV("ret:%d", ret);
-    if (!ret) {
+    if (ret) {
         android_app_destroy(android_app);
     }
     return NULL;

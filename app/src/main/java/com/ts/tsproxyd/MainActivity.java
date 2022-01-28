@@ -1,15 +1,12 @@
 package com.ts.tsproxyd;
 
 import android.os.Bundle;
-import android.widget.TextView;
-
-import com.ts.tsproxyd.databinding.ActivityMainBinding;
 
 public class MainActivity extends android.app.NativeActivity {
 
     // Used to load the 'tsproxy' library on application startup.
     static {
-       System.loadLibrary("hv");
+        System.loadLibrary("hv");
         System.loadLibrary("tsproxyd");
     }
 
