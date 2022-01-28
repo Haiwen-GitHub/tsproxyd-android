@@ -10,7 +10,6 @@ extern "C" {
 #endif
 
 extern int main(int argc, char** argv);
-// extern int init_daemon(int argc, char** argv);
 
 #ifdef __cplusplus
 }
