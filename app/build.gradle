@@ -3,8 +3,6 @@ plugins {
 }
 
 android {
-    compileSdk 32
-
     defaultConfig {
         applicationId "com.ts.tsproxyd"
         minSdk 19
@@ -55,9 +53,9 @@ android {
         includeInApk true
         includeInBundle true
     }
-    compileSdkVersion 32
-    buildToolsVersion '30.0.2'
-    ndkVersion '23.1.7779620'
+    compileSdkVersion 30
+    buildToolsVersion '30.0.3'
+    ndkVersion '21.3.6528147'
 }
 
 dependencies {
