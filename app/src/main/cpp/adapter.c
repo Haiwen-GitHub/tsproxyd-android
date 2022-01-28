@@ -25,7 +25,7 @@
 
 void work_thread(void* agr) {
     int argcc = 3;
-    const * argvv[3] = {"tsproxyd", "-c", "/sdcard/tsproxyd.conf"};
+    const char* argvv[3] = {"tsproxyd", "-c", "/sdcard/tsproxyd.conf"};
     LOGE("work_thread start \n");
     int ret = main(argcc, argvv);
     //int ret = init_daemon(argcc, argvv);
@@ -39,7 +39,6 @@ void work_thread(void* agr) {
 
 int android_main(struct android_app* app) {
     LOGI("android_main start");
-
     pthread_t thread = 0;
     pthread_attr_t attr;
     pthread_attr_init(&attr);
@@ -49,7 +48,7 @@ int android_main(struct android_app* app) {
     if (thread != 0) {
         return 1;
     }
-    work_thread(NULL);
+    //work_thread(NULL);
     return 0;
     LOGI("android_main end");
 }
