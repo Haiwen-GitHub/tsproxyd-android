@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Tsproxyd</string>
+    <string name="title_activity_test">TestActivity</string>
+    <string name="ts_proxy_name">Web代理服务</string>
 </resources>

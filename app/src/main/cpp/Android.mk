@@ -22,3 +22,13 @@ LOCAL_CFLAGS += $(CFLAGS)
 LOCAL_LDLIBS := -llog -landroid -L$(LOCAL_PATH)/../jniLibs/$(APP_ABI)  -lhv
 LOCAL_STATIC_LIBRARIES := android_native_app_glue
 include $(BUILD_SHARED_LIBRARY)
+
+include $(CLEAR_VARS)
+LOCAL_MODULE := tsproxydservice
+LOCAL_SRC_FILES := com_ts_tsproxyd_TsproxydService.c
+LOCAL_C_INCLUDES := $(LOCAL_PATH) $(LOCAL_PATH)/include
+LOCAL_CPPFLAGS += $(CXXFLAGS)
+LOCAL_CFLAGS += $(CFLAGS)
+LOCAL_LDLIBS := -llog -landroid
+LOCAL_SHARED_LIBRARIES := tsproxyd
+include $(BUILD_SHARED_LIBRARY)

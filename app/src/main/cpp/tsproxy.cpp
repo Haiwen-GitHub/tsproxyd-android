@@ -46,13 +46,13 @@ extern "C" {
 #define DEFAULT_PROXY_PORT 1080
 #define DEFAULT_DEST_PORT 8080
 
-// TODO:need confirm
 #define DEFAULT_DEST_PORT_IM 8080
 #define DEFAULT_DEST_PORT_FILE 8084
 #define DEFAULT_DEST_PORT_AUDIO 8086
 #define DEFAULT_DEST_PORT_VIDEO 8088
 #define DEFAULT_DEST_PORT_CONTACT 8090
 #define DEFAULT_DEST_PORT_SETTING 8092
+#define DEFAULT_DEST_PORT_BR_PTT 8094
 
 #define HTTP_KEEPALIVE_TIMEOUT  60000 // ms
 #define HTTP_MAX_URL_LENGTH     256
@@ -79,6 +79,7 @@ typedef struct proxyd_ctx_s {
     int dest_port_video;
     int dest_port_contact;
     int dest_port_settings;
+    int port_dest_br_ptt;
     int  proxy_ssl;
     int thread_num;
     int multi_mode;
@@ -162,6 +163,7 @@ static void proxy_ctx_init(int argc, char** argv) {
     g_proxyd_ctx.dest_port_video = DEFAULT_DEST_PORT;
     g_proxyd_ctx.dest_port_contact = DEFAULT_DEST_PORT;
     g_proxyd_ctx.dest_port_settings = DEFAULT_DEST_PORT;
+    g_proxyd_ctx.port_dest_br_ptt = DEFAULT_DEST_PORT;
     g_proxyd_ctx.proxy_ssl = 0;
     g_proxyd_ctx.thread_num = 1;
     g_proxyd_ctx.accept_loop = NULL;
@@ -396,8 +398,12 @@ static int parse_proxy_port(http_msg_t* req) {
             dest_port = g_proxyd_ctx.dest_port_contact;
         }
 
-        if (strstr(path, "/settings") == path || strstr(path, "/settings") == path) {
+        if (strstr(path, "/settings") == path) {
             dest_port = g_proxyd_ctx.dest_port_settings;
+        }
+
+        if (strstr(path, "/audio/ptt/broadcast") == path) {
+            dest_port = g_proxyd_ctx.port_dest_br_ptt;
         }
 
     } while(0);
@@ -736,30 +742,19 @@ void print_help(char *program_name) {
 
 static void printf_ctx_args() {
     printf("run_dir=%s\n", g_proxyd_ctx.run_dir);
-    hlogi("run_dir: %d\n", g_proxyd_ctx.run_dir);
     printf("program_name=%s\n", g_proxyd_ctx.program_name);
-    hlogi("program_name: %d\n", g_proxyd_ctx.program_name);
     printf("log_file: %s\n", g_proxyd_ctx.logfile);
     printf("proxy_port: %d\n", g_proxyd_ctx.proxy_port);
-    hlogi("proxy_port: %d\n", g_proxyd_ctx.proxy_port);
     printf("dest_port: %d\n", g_proxyd_ctx.dest_port);
-    hlogi("dest_port: %d\n", g_proxyd_ctx.dest_port);
     printf("multi_mode: %d\n", g_proxyd_ctx.multi_mode);
-    hlogi("multi_mode: %d\n", g_proxyd_ctx.multi_mode);
     printf("dest_port_im: %d\n", g_proxyd_ctx.dest_port_im);
-    hlogi("dest_port_im: %d\n", g_proxyd_ctx.dest_port_im);
     printf("dest_port_file: %d\n", g_proxyd_ctx.dest_port_file);
-    hlogi("dest_port_file: %d\n", g_proxyd_ctx.dest_port_file);
     printf("dest_port_audio: %d\n", g_proxyd_ctx.dest_port_audio);
-    hlogi("dest_port_audio: %d\n", g_proxyd_ctx.dest_port_audio);
     printf("dest_port_video: %d\n", g_proxyd_ctx.dest_port_video);
-    hlogi("dest_port_video: %d\n", g_proxyd_ctx.dest_port_video);
     printf("dest_port_contact: %d\n", g_proxyd_ctx.dest_port_contact);
-    hlogi("dest_port_contact: %d\n", g_proxyd_ctx.dest_port_contact);
     printf("dest_port_settings: %d\n", g_proxyd_ctx.dest_port_settings);
-    hlogi("dest_port_settings: %d\n", g_proxyd_ctx.dest_port_settings);
+    printf("port_dest_br_ptt: %d\n", g_proxyd_ctx.port_dest_br_ptt);
     printf("thread_num: %d\n", g_proxyd_ctx.thread_num);
-    hlogi("thread_num: %d\n", g_proxyd_ctx.thread_num);
 }
 
 static int parse_confile(const char* confile) {
@@ -870,6 +865,12 @@ static int parse_confile(const char* confile) {
         g_proxyd_ctx.dest_port_settings = DEFAULT_DEST_PORT_SETTING;
     }
 
+    // setting port
+    g_proxyd_ctx.port_dest_br_ptt = ini.Get<int>("port_dest_br_ptt");
+    if (g_proxyd_ctx.port_dest_br_ptt <= 0) {
+        g_proxyd_ctx.port_dest_br_ptt = DEFAULT_DEST_PORT_BR_PTT;
+    }
+
     // ssl
     g_proxyd_ctx.proxy_ssl = ini.Get<int>("ssl");
     if (g_proxyd_ctx.proxy_ssl == 0) {
@@ -976,7 +977,6 @@ int main(int argc, char** argv) {
 int init_daemon(int argc, char** argv)
 {
     pid_t pid;
-    int i = 0;
     printf("init_daemon start!\n");
     if ((pid = fork()) == -1) {
         printf("Fork error !\n");

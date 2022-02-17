@@ -4,7 +4,7 @@ adb root
 
 adb remount
 
-adb push ./tsproxyd.conf /sdcard/
+@rem adb push ./tsproxyd.conf /sdcard/
 
 adb push install -r ./tsproxyd.apk
 
