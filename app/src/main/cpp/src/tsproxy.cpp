@@ -60,7 +60,7 @@ extern "C" {
 
 
 #define HTTP_MAX_METHOD_LENGTH 32
-#define HTTP_MAX_HEADER_LENGTH 64
+#define HTTP_MAX_HEAD_MSG_LENGTH 64
 #define HTTP_MAX_IP_LENGTH 64
 
 typedef struct proxyd_ctx_s {
@@ -114,21 +114,24 @@ typedef struct {
         // status line
         struct {
             int  status_code;
-            char status_message[HTTP_MAX_HEADER_LENGTH];
+            char status_message[HTTP_MAX_HEAD_MSG_LENGTH];
         };
     };
     // headers
-    char        host[HTTP_MAX_HEADER_LENGTH];
-    char        backend_host[HTTP_MAX_HEADER_LENGTH];
+    char        host[HTTP_MAX_HEAD_MSG_LENGTH];
+    char        backend_host[HTTP_MAX_HEAD_MSG_LENGTH];
     int         content_length;
-    char        content_type[HTTP_MAX_HEADER_LENGTH*2];
+    char        content_type[HTTP_MAX_HEAD_MSG_LENGTH*2];
     unsigned    keepalive:  1;
     unsigned    proxy:      1;
     unsigned    connected:  1;
-    char        user_agent[HTTP_MAX_HEADER_LENGTH];
-    char        accept[HTTP_MAX_HEADER_LENGTH];
-    char        transfer_encoding[HTTP_MAX_HEADER_LENGTH];
-    char        expect[HTTP_MAX_HEADER_LENGTH];
+    char        user_agent[HTTP_MAX_HEAD_MSG_LENGTH];
+    char        accept[HTTP_MAX_HEAD_MSG_LENGTH];
+    char        transfer_encoding[HTTP_MAX_HEAD_MSG_LENGTH];
+    char        expect[HTTP_MAX_HEAD_MSG_LENGTH];
+    char        cache_control[HTTP_MAX_HEAD_MSG_LENGTH];
+    char        origin[HTTP_MAX_HEAD_MSG_LENGTH];
+    char        pragma[HTTP_MAX_HEAD_MSG_LENGTH];
     char        head[HTTP_MAX_HEAD_LENGTH];
     int         head_len;
     // body
@@ -176,7 +179,7 @@ static int http_request_dump(http_conn_t* conn, char* buf, int len) {
     int offset = 0;
 
     // request line
-    const char* path = msg->path;
+    const char *path = msg->path;
     if (msg->proxy) {
         const char* pos = strstr(msg->path, "://");
         pos = pos ? pos + 3 : msg->path;
@@ -184,7 +187,7 @@ static int http_request_dump(http_conn_t* conn, char* buf, int len) {
 
         // const char* pos1 = strstr(msg->path, "proxy");
         // pos = pos1 ? pos1 + 5 : pos;
-        //path = strchr(pos, '/');
+        // path = strchr(pos, '/');
     }
 
     if (path == NULL) path = "/";
@@ -229,6 +232,18 @@ static int http_request_dump(http_conn_t* conn, char* buf, int len) {
             offset += snprintf(buf + offset, len - offset, "Expect: %s\r\n", msg->expect);
         }
 
+        if (strlen(msg->cache_control) > 0) {
+            offset += snprintf(buf + offset, len - offset, "Cache-Control: %s\r\n", msg->cache_control);
+        }
+
+        if (strlen(msg->origin) > 0) {
+            offset += snprintf(buf + offset, len - offset, "Origin: %s\r\n", msg->origin);
+        }
+
+        if (strlen(msg->pragma) > 0) {
+            offset += snprintf(buf + offset, len - offset, "Pragma: %s\r\n", msg->pragma);
+        }
+
         // char peeraddrstr[SOCKADDR_STRLEN] = {0};
         // SOCKADDR_STR(hio_peeraddr(conn->io), peeraddrstr);
         // offset += snprintf(buf + offset, len - offset, "X-Origin-IP: %s\r\n", peeraddrstr);
@@ -252,6 +267,7 @@ static int http_request_dump(http_conn_t* conn, char* buf, int len) {
     }
 
     printf("http_request_dump offset: %d\n", offset);
+
     return offset;
 }
 
@@ -304,9 +320,14 @@ static bool parse_http_head(http_conn_t* conn, char* buf, int len) {
         strncpy(req->transfer_encoding, val, sizeof(req->transfer_encoding) - 1);
     } else if (stricmp(key, "Expect") == 0) {
         strncpy(req->expect, val, sizeof(req->expect) - 1);
-    } 
+    } else if (stricmp(key, "Cache-Control") == 0) {
+        strncpy(req->cache_control, val, sizeof(req->cache_control) - 1);
+    } else if (stricmp(key, "Origin") == 0) {
+        strncpy(req->origin, val, sizeof(req->origin) - 1);
+    } else if (stricmp(key, "Pragma") == 0) {
+        strncpy(req->pragma, val, sizeof(req->pragma) - 1);
+    }
     else {
-        // TODO: save other head
         /*
         SSE：
         Content-Type: text/event-stream
@@ -361,6 +382,7 @@ static void on_upstream_connect(hio_t* upstream_io) {
 
 static int parse_proxy_port(http_msg_t* req) {
     int dest_port = g_proxyd_ctx.dest_port;
+
     do {
         if (strlen(req->path) <= 0) {
             fprintf(stderr, "path is empty!\n");
@@ -376,7 +398,7 @@ static int parse_proxy_port(http_msg_t* req) {
             break;
         }
 
-         //printf("parse path:%s, sub:%s\n", path, strstr(path, "/im"));
+        printf("parse dest path:%s\n", path);
 
         if (strstr(path, "/im") == path) {
             dest_port = g_proxyd_ctx.dest_port_im;
@@ -742,19 +764,33 @@ void print_help(char *program_name) {
 
 static void printf_ctx_args() {
     printf("run_dir=%s\n", g_proxyd_ctx.run_dir);
+    hlogi("run_dir: %s\n", g_proxyd_ctx.run_dir);
     printf("program_name=%s\n", g_proxyd_ctx.program_name);
+    hlogi("program_name: %s\n", g_proxyd_ctx.program_name);
     printf("log_file: %s\n", g_proxyd_ctx.logfile);
+    hlogi("log_file: %s\n", g_proxyd_ctx.logfile);
     printf("proxy_port: %d\n", g_proxyd_ctx.proxy_port);
+    hlogi("proxy_port: %d\n", g_proxyd_ctx.proxy_port);
     printf("dest_port: %d\n", g_proxyd_ctx.dest_port);
+    hlogi("dest_port: %d\n", g_proxyd_ctx.dest_port);
     printf("multi_mode: %d\n", g_proxyd_ctx.multi_mode);
+    hlogi("multi_mode: %d\n", g_proxyd_ctx.multi_mode);
     printf("dest_port_im: %d\n", g_proxyd_ctx.dest_port_im);
+    hlogi("dest_port_im: %d\n", g_proxyd_ctx.dest_port_im);
     printf("dest_port_file: %d\n", g_proxyd_ctx.dest_port_file);
+    hlogi("dest_port_file: %d\n", g_proxyd_ctx.dest_port_file);
     printf("dest_port_audio: %d\n", g_proxyd_ctx.dest_port_audio);
+    hlogi("dest_port_audio: %d\n", g_proxyd_ctx.dest_port_audio);
     printf("dest_port_video: %d\n", g_proxyd_ctx.dest_port_video);
+    hlogi("dest_port_video: %d\n", g_proxyd_ctx.dest_port_video);
     printf("dest_port_contact: %d\n", g_proxyd_ctx.dest_port_contact);
+    hlogi("dest_port_contact: %d\n", g_proxyd_ctx.dest_port_contact);
     printf("dest_port_settings: %d\n", g_proxyd_ctx.dest_port_settings);
+    hlogi("dest_port_settings: %d\n", g_proxyd_ctx.dest_port_settings);
     printf("port_dest_br_ptt: %d\n", g_proxyd_ctx.port_dest_br_ptt);
+    hlogi("port_dest_br_ptt: %d\n", g_proxyd_ctx.port_dest_br_ptt);
     printf("thread_num: %d\n", g_proxyd_ctx.thread_num);
+    hlogi("thread_num: %d\n", g_proxyd_ctx.thread_num);
 }
 
 static int parse_confile(const char* confile) {
@@ -954,13 +990,6 @@ int main(int argc, char** argv) {
     //     return 0;
     // }
 
-    // nochdir, noclose
-//    int ret = daemon(1, 1);
-//    if (ret != 0) {
-//        printf("daemon error: %d\n", ret);
-//        return -10;
-//    }
-
     // malloc work threads
     g_proxyd_ctx.worker_loops = (hloop_t**)malloc(sizeof(hloop_t*) * g_proxyd_ctx.thread_num);
     for (int i = 0; i < g_proxyd_ctx.thread_num; ++i) {
@@ -974,6 +1003,8 @@ int main(int argc, char** argv) {
     return 0;
 }
 
+
+/*
 int init_daemon(int argc, char** argv)
 {
     pid_t pid;
@@ -1003,7 +1034,8 @@ int init_daemon(int argc, char** argv)
             //exit(0);
         } else {
             printf("child 2 \n");
-            chdir("/sdcard");      // 改变工作目录
+            int ret = chdir("/sdcard");      // 改变工作目录
+            printf("ret:%d\n", ret);
             umask(0);           // 重设文件掩码
 
             int file_max = sysconf(_SC_OPEN_MAX);
@@ -1018,6 +1050,7 @@ int init_daemon(int argc, char** argv)
     printf("init_daemon end!\n");
     return 0;
 }
+*/
 
 #ifdef __cplusplus
 }

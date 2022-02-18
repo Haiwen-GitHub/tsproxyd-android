@@ -5,7 +5,7 @@ LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE:= android_native_app_glue
-LOCAL_SRC_FILES:= android_native_app_glue.c
+LOCAL_SRC_FILES:= src/android_native_app_glue.c
 LOCAL_EXPORT_C_INCLUDES := $(LOCAL_PATH)
 LOCAL_EXPORT_LDLIBS := -llog -landroid
 # The linker will strip this as "unused" since this is a static library, but we
@@ -15,7 +15,7 @@ include $(BUILD_STATIC_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := tsproxyd
-LOCAL_SRC_FILES := tsproxy.cpp adapter.c
+LOCAL_SRC_FILES := src/tsproxy.cpp src/adapter.c
 LOCAL_C_INCLUDES := $(LOCAL_PATH) $(LOCAL_PATH)/include
 LOCAL_CPPFLAGS += $(CXXFLAGS)
 LOCAL_CFLAGS += $(CFLAGS)
@@ -25,7 +25,7 @@ include $(BUILD_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE := tsproxydservice
-LOCAL_SRC_FILES := com_ts_tsproxyd_TsproxydService.c
+LOCAL_SRC_FILES := src/com_ts_tsproxyd_TsproxydService.c
 LOCAL_C_INCLUDES := $(LOCAL_PATH) $(LOCAL_PATH)/include
 LOCAL_CPPFLAGS += $(CXXFLAGS)
 LOCAL_CFLAGS += $(CFLAGS)
