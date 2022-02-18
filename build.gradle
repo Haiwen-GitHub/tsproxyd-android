@@ -1,19 +1,40 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 buildscript {
     repositories {
-        maven { url 'https://maven.aliyun.com/repository/public/' }
-        maven { url 'https://maven.aliyun.com/repository/central' }
-        maven { url 'https://maven.aliyun.com/repository/google' }
-        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
-        mavenLocal()
-        mavenCentral()
-        google()
+//        maven { url 'https://maven.aliyun.com/repository/public/' }
+//        maven { url 'https://maven.aliyun.com/repository/central' }
+//        maven { url 'https://maven.aliyun.com/repository/google' }
+//        maven { url 'https://maven.aliyun.com/repository/gradle-plugin' }
+//        mavenLocal()
+//        mavenCentral()
+//        google()
+        google{
+            url "http://maven.xalocal.com/repository/aliyun-google/"
+        }
+        mavenCentral{
+            url "http://maven.xalocal.com/repository/aliyun-maven2/"
+        }
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:7.0.4"
+        classpath "com.android.tools.build:gradle:4.2.1"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
+    }
+}
+
+allprojects {
+    repositories {
+        google{
+            url "http://maven.xalocal.com/repository/aliyun-google/"
+        }
+        mavenCentral{
+            url "http://maven.xalocal.com/repository/aliyun-maven2/"
+        }
+
+        jcenter{
+            url "http://maven.xalocal.com/repository/aliyun-jcenter/"
+        }
     }
 }
 
