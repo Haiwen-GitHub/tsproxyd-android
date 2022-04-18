@@ -56,7 +56,6 @@ extern "C" {
 #define DEFAULT_DEST_PORT_LOCATION 8096
 
 
-
 #define HTTP_KEEPALIVE_TIMEOUT  60000 // ms
 #define HTTP_MAX_URL_LENGTH     256
 #define HTTP_MAX_HEAD_LENGTH    1024
@@ -441,7 +440,8 @@ static int parse_proxy_port(http_msg_t* req) {
             break;
         }
 
-        if (strstr(path, "/location") == path) {
+        if (strstr(path, "/location") == path || strstr(path, "/v0/ap/location") == path
+		    || strstr(path, "/v0/ap/location/setting") == path || strstr(path, "/v0/ap/location/setting") == path) {
             dest_port = g_proxyd_ctx.dest_port_location;
             break;
         }
